@@ -15,7 +15,9 @@
 //
 
 import RIBs
+import RxRelay
 import RxSwift
+import UIKit
 
 class WindowMock: UIWindow {
     
@@ -51,18 +53,18 @@ class InteractorMock: Interactable {
         return active.asObservable()
     }
 
-    private let active = Variable<Bool>(false)
+    private let active = BehaviorRelay<Bool>(value: false)
 
     init() {}
 
     // MARK: - Lifecycle
 
     func activate() {
-        active.value = true
+        active.accept(true)
     }
 
     func deactivate() {
-        active.value = false
+        active.accept(false)
     }
 }
 
@@ -80,8 +82,7 @@ class InteractableMock: Interactable {
     var deactivateHandler: (() -> ())?
     var deactivateCallCount: Int = 0
 
-    init() {
-    }
+    init() {}
 
     func activate() {
         activateCallCount += 1

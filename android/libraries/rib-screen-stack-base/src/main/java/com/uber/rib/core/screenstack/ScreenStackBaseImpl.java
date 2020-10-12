@@ -1,8 +1,11 @@
 package com.uber.rib.core.screenstack;
 
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.UiThread;
+
+import com.uber.rib.core.screenstack.transition.Direction;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -129,5 +132,23 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
     private ViewProvider currentViewProvider() {
         StateFulViewProvider stateFulViewProvider = currentStateFulViewProvider();
         return stateFulViewProvider == null ? null : stateFulViewProvider.getViewProvider();
+    }
+
+    private void saveCurrentState(View currentView) {
+        StateFulViewProvider stateFulViewProvider = currentStateFulViewProvider();
+        if (stateFulViewProvider == null) {
+            return;
+        }
+
+        currentView.saveHierarchyState(stateFulViewProvider.getParcelableSparseArray());
+    }
+
+    private void restoreCurrentState(View currentView) {
+        StateFulViewProvider stateFulViewProvider = currentStateFulViewProvider();
+        if (stateFulViewProvider == null) {
+            return;
+        }
+
+        currentView.restoreHierarchyState(stateFulViewProvider.getParcelableSparseArray());
     }
 }

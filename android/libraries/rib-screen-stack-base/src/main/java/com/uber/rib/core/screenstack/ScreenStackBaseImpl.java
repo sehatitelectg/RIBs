@@ -1,5 +1,6 @@
 package com.uber.rib.core.screenstack;
 
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -27,11 +28,13 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
 
     @Override
     public void pushScreen(ViewProvider viewProvider, boolean shouldAnimate) {
-        removeCurrentScreen();
+        View src = removeCurrentScreen();
+        if (src != null) saveCurrentState(src);
         onCurrentViewHidden();
         backStack.push(new StateFulViewProvider(viewProvider));
         // order matters here
-        showCurrentScreen();
+        View dest = showCurrentScreen();
+        if (dest != null) restoreCurrentState(dest);
         onCurrentViewAppeared();
     }
 
@@ -46,10 +49,12 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
             return;
         }
 
-        removeCurrentScreen();
+        View src = removeCurrentScreen();
+        if (src != null) saveCurrentState(src);
         onCurrentViewRemoved();
         backStack.pop();
-        showCurrentScreen();
+        View dest = showCurrentScreen();
+        if (dest != null) restoreCurrentState(dest);
         onCurrentViewAppeared();
     }
 
@@ -88,17 +93,26 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         return size() - 1;
     }
 
-    private void showCurrentScreen() {
-        ViewProvider vp = currentViewProvider();
-        if (vp != null) {
-            parentViewGroup.addView(vp.buildView(parentViewGroup));
+    private View showCurrentScreen() {
+        StateFulViewProvider stateFulViewProvider = currentStateFulViewProvider();
+        if (stateFulViewProvider == null) {
+            return null;
         }
+        View currentView = stateFulViewProvider.getViewProvider().buildView(parentViewGroup);
+        parentViewGroup.addView(currentView);
+
+        return currentView;
     }
 
-    private void removeCurrentScreen() {
+    private View removeCurrentScreen() {
         if (parentViewGroup.getChildCount() > 0) {
-            parentViewGroup.removeViewAt(parentViewGroup.getChildCount() - 1);
+            View view = parentViewGroup.getChildAt(parentViewGroup.getChildCount() - 1);
+            parentViewGroup.removeView(view);
+
+            return view;
         }
+
+        return null;
     }
 
     private void onCurrentViewAppeared() {
@@ -139,7 +153,7 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         if (stateFulViewProvider == null) {
             return;
         }
-
+        Log.e("restoreCurrentState", stateFulViewProvider.getParcelableSparseArray() + "");
         currentView.saveHierarchyState(stateFulViewProvider.getParcelableSparseArray());
     }
 
@@ -148,7 +162,7 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         if (stateFulViewProvider == null) {
             return;
         }
-
+        Log.e("restoreCurrentState", stateFulViewProvider.getParcelableSparseArray() + "");
         currentView.restoreHierarchyState(stateFulViewProvider.getParcelableSparseArray());
     }
 }

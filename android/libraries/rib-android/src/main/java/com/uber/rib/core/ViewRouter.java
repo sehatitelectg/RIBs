@@ -17,6 +17,8 @@ package com.uber.rib.core;
 
 import android.view.View;
 
+import com.uber.rib.core.screenstack.lifecycle.ScreenStackEvent;
+
 /**
  * Router subclass that has a view.
  *
@@ -26,17 +28,41 @@ import android.view.View;
  */
 public abstract class ViewRouter<
         V extends View, I extends Interactor, C extends InteractorBaseComponent>
-    extends Router<I, C> {
+        extends Router<I, C> {
 
-  private final V view;
+    private final V view;
 
-  public ViewRouter(V view, I interactor, C component) {
-    super(interactor, component);
-    this.view = view;
-  }
+    public ViewRouter(V view, I interactor, C component) {
+        super(interactor, component);
+        this.view = view;
+    }
 
-  /** @return the router's view. */
-  public V getView() {
-    return view;
-  }
+    /**
+     * @return the router's view.
+     */
+    public V getView() {
+        return view;
+    }
+
+    /**
+     * Handling ScreenStack
+     *
+     * @param router
+     * @param event
+     */
+    public final void handleScreenEvents(Router<?, ?> router, ScreenStackEvent event) {
+        switch (event) {
+            case APPEARED:
+                if (router != null) {
+                    attachChild(router);
+                }
+                break;
+            case HIDDEN:
+            case REMOVED:
+                if (router != null) {
+                    detachChild(router);
+                }
+                break;
+        }
+    }
 }

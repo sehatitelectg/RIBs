@@ -153,7 +153,7 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         if (stateFulViewProvider == null) {
             return;
         }
-        Log.e("restoreCurrentState", stateFulViewProvider.getParcelableSparseArray() + "");
+        Log.e("saveCurrentState", stateFulViewProvider.getParcelableSparseArray() + "");
         currentView.saveHierarchyState(stateFulViewProvider.getParcelableSparseArray());
     }
 

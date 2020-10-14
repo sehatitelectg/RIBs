@@ -15,6 +15,7 @@ import java.util.Deque;
 public class ScreenStackBaseImpl implements ScreenStackBase {
 
     private final Deque<StateFulViewProvider> backStack = new ArrayDeque<>();
+    private final Deque<StateFulViewProvider> backStackTransition = new ArrayDeque<>();
     private final ViewGroup parentViewGroup;
 
     public ScreenStackBaseImpl(ViewGroup parentViewGroup) {
@@ -164,5 +165,29 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         }
         Log.e("restoreCurrentState", stateFulViewProvider.getParcelableSparseArray() + "");
         currentView.restoreHierarchyState(stateFulViewProvider.getParcelableSparseArray());
+    }
+
+    public Deque<StateFulViewProvider> getBackStackTransition() {
+        return backStackTransition;
+    }
+
+    public boolean checkMedicationLayout() {
+        //TODO Uncomment
+//        return PatientMedicineView.class.isInstance(parentViewGroup.getChildAt(parentViewGroup.getChildCount() - 1));
+        return false;
+    }
+
+    public void pushAllTransition() {
+        while (backStackTransition.peek() != null && backStackTransition.size() > 1) {
+            backStack.push(backStackTransition.pop());
+        }
+
+        View from = removeCurrentScreen();
+        saveCurrentState(from);
+        onCurrentViewHidden();
+        backStack.push(backStackTransition.pop());
+        View to = showCurrentScreen();
+        restoreCurrentState(to);
+        onCurrentViewAppeared();
     }
 }

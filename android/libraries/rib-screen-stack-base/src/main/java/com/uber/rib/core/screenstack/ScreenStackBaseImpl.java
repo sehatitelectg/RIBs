@@ -4,12 +4,17 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.material.snackbar.Snackbar;
+import com.uber.rib.core.screenstack.transition.Direction;
+import com.uber.rib.core.screenstack.transition.Transition;
+
 import androidx.annotation.UiThread;
 
-import com.uber.rib.core.screenstack.transition.Direction;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import static com.uber.rib.core.screenstack.transition.Direction.BACKWARD;
 
 @UiThread
 public class ScreenStackBaseImpl implements ScreenStackBase {
@@ -107,6 +112,12 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
 
     private View removeCurrentScreen() {
         if (parentViewGroup.getChildCount() > 0) {
+
+            if (Snackbar.SnackbarLayout.class.isInstance(parentViewGroup.getChildAt(parentViewGroup.getChildCount() - 1))) {
+                View viewToBeRemoved = parentViewGroup.getChildAt(parentViewGroup.getChildCount() - 1);
+                parentViewGroup.removeView(viewToBeRemoved);
+            }
+
             View view = parentViewGroup.getChildAt(parentViewGroup.getChildCount() - 1);
             parentViewGroup.removeView(view);
 
@@ -190,4 +201,63 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         restoreCurrentState(to);
         onCurrentViewAppeared();
     }
+
+    public void clearBackStackTranstition() {
+        if (backStackTransition != null) {
+            backStackTransition.clear();
+        }
+
+    }
+
+    public void popBackTransitionTo(final int index) {
+
+        navigate(() -> {
+            if (index > size() || index < -1) {
+                throw new IllegalArgumentException("Index size invalid");
+            }
+            while (size() - 1 > index) {
+                onCurrentViewRemoved();
+                backStackTransition.push(backStack.pop());
+//                backStack.pop();
+            }
+//            onCurrentViewAppeared();
+        });
+    }
+
+    public void popBackTransitionToScreen(final ViewProvider viewProvider) {
+
+
+        navigate(() -> {
+
+            while (!(backStack.peek().getViewProvider().getClass().isInstance(viewProvider))) {
+                onCurrentViewRemoved();
+//                if (backStack.peek().viewProvider.getClass().isInstance(viewProvider)){
+//                    break;
+//                }
+                backStackTransition.push(backStack.pop());
+//                backStack.pop();
+            }
+//            onCurrentViewAppeared();
+        });
+    }
+
+    private void navigate(final Runnable backStackOperation) {
+//        if (direction == FORWARD) {
+        View from = removeCurrentScreen();
+        saveCurrentState(from);
+        backStackOperation.run();
+        View to = showCurrentScreen();
+        restoreCurrentState(to);
+        onCurrentViewAppeared();
+//        } else {
+//            View from = removeCurrentScreen();
+//            saveCurrentState(from);
+//            backStackOperation.run();
+//            View to = showCurrentScreen(direction);
+//            animateAndRemove(from, to, direction, transition);
+//            restoreCurrentState(to);
+//        }
+    }
+
+
 }

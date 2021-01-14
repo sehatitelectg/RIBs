@@ -55,17 +55,19 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
             return;
         }
 
-        View src = removeCurrentScreen();
-        if (src != null) saveCurrentState(src);
-        onCurrentViewRemoved();
-        if (backStackTransition.peek() != null && backStackTransition.size() > 1){
+        if (backStackTransition.size() > 1){
             backStackTransition.push(backStack.pop());
+            pushAllTransition();
         }else {
+            View src = removeCurrentScreen();
+            if (src != null) saveCurrentState(src);
+            onCurrentViewRemoved();
             backStack.pop();
+            View dest = showCurrentScreen();
+            if (dest != null) restoreCurrentState(dest);
+            onCurrentViewAppeared();
         }
-        View dest = showCurrentScreen();
-        if (dest != null) restoreCurrentState(dest);
-        onCurrentViewAppeared();
+
     }
 
     @Override

@@ -55,8 +55,8 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
             return;
         }
 
-        if (backStackTransition.size() > 1){
-            backStackTransition.push(backStack.pop());
+        if (backStackTransition.size() > 0){
+//            backStackTransition.push(backStack.pop());
             pushAllTransition();
         }else {
             View src = removeCurrentScreen();

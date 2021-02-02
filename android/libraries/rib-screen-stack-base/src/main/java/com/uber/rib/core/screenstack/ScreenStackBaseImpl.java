@@ -12,14 +12,16 @@ import androidx.annotation.UiThread;
 
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
 import static com.uber.rib.core.screenstack.transition.Direction.BACKWARD;
 
 @UiThread
 public class ScreenStackBaseImpl implements ScreenStackBase {
 
-    private final Deque<StateFulViewProvider> backStack = new ArrayDeque<>();
+    private Deque<StateFulViewProvider> backStack = new ArrayDeque<>();
     private final Deque<StateFulViewProvider> backStackTransition = new ArrayDeque<>();
     private final ViewGroup parentViewGroup;
 
@@ -55,10 +57,9 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
             return;
         }
 
-        if (backStackTransition.size() > 0){
-//            backStackTransition.push(backStack.pop());
+        if (backStackTransition.size() > 0) {
             pushAllTransition();
-        }else {
+        } else {
             View src = removeCurrentScreen();
             if (src != null) saveCurrentState(src);
             onCurrentViewRemoved();
@@ -75,6 +76,28 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         for (int size = backStack.size() - 1; size > index; size--) {
             popScreen();
         }
+        // TODO: Try New Logic
+//        if (backStack.isEmpty()) {
+//            return;
+//        }
+//
+//        if (backStackTransition.size() > 0) {
+//            pushAllTransition();
+//        } else {
+//            View src = removeCurrentScreen();
+//            if (src != null) saveCurrentState(src);
+//            onCurrentViewRemoved();
+////            List tmp = new ArrayList<>(backStack).subList(backStack.size() - (index + 1), backStack.size());
+////            backStack = new ArrayDeque<>(tmp);
+//            for (int size = backStack.size() - 1; size > index; size--) {
+//                backStack.pop();
+//            }
+//
+//            View dest = showCurrentScreen();
+//            if (dest != null) restoreCurrentState(dest);
+//            onCurrentViewAppeared();
+//        }
+
     }
 
     @Override
@@ -212,7 +235,6 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
         if (backStackTransition != null) {
             backStackTransition.clear();
         }
-
     }
 
     public void popBackTransitionTo(final int index) {
@@ -224,9 +246,7 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
             while (size() - 1 > index) {
                 onCurrentViewRemoved();
                 backStackTransition.push(backStack.pop());
-//                backStack.pop();
             }
-//            onCurrentViewAppeared();
         });
     }
 
@@ -238,32 +258,18 @@ public class ScreenStackBaseImpl implements ScreenStackBase {
             while (!(backStack.peek().getViewProvider().getClass().isInstance(viewProvider))) {
 
                 onCurrentViewRemoved();
-//                if (backStack.peek().viewProvider.getClass().isInstance(viewProvider)){
-//                    break;
-//                }
                 backStackTransition.push(backStack.pop());
-//                backStack.pop();
             }
-//            onCurrentViewAppeared();
         });
     }
 
     private void navigate(final Runnable backStackOperation) {
-//        if (direction == FORWARD) {
         View from = removeCurrentScreen();
         saveCurrentState(from);
         backStackOperation.run();
         View to = showCurrentScreen();
         restoreCurrentState(to);
         onCurrentViewAppeared();
-//        } else {
-//            View from = removeCurrentScreen();
-//            saveCurrentState(from);
-//            backStackOperation.run();
-//            View to = showCurrentScreen(direction);
-//            animateAndRemove(from, to, direction, transition);
-//            restoreCurrentState(to);
-//        }
     }
 
 
